@@ -1,0 +1,11 @@
+[Protocol]
+exec=sap-qt '%u'
+protocol=sap
+input=none
+output=none
+helper=true
+listing=
+reading=false
+writing=false
+makedir=false
+deleting=false

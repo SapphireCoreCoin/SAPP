@@ -1,0 +1,8 @@
+/usr/bin/sap-cli		--	gen_context(system_u:object_r:sap_exec_t,s0)
+/usr/sbin/sapd		--	gen_context(system_u:object_r:sap_exec_t,s0)
+/usr/lib(64)?/sap/sapd		--	gen_context(system_u:object_r:sap_exec_t,s0)
+
+/etc/sap(/.*)?		gen_context(system_u:object_r:sap_conf_t,s0)
+/var/lib/sap(/.*)?		gen_context(system_u:object_r:sap_var_lib_t,s0)
+
+(/var)?/run/sapd(/.*)?   gen_context(system_u:object_r:sap_var_run_t,s0)

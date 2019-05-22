@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=SAP
+Comment=SAP P2P Cryptocurrency
+Comment[fr]=SAP, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=SAP, eşten eşe kriptografik sanal para birimi
+Exec=sap-qt %u
+Terminal=false
+Type=Application
+Icon=sap128
+MimeType=x-scheme-handler/sap;
+Categories=Office;Finance;

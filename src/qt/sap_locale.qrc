@@ -1,0 +1,36 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/translations">
+        <file alias="bg">locale/sap_bg.qm</file>
+        <file alias="ca">locale/sap_ca.qm</file>
+        <file alias="cs">locale/sap_cs.qm</file>
+        <file alias="da">locale/sap_da.qm</file>
+        <file alias="de">locale/sap_de.qm</file>
+        <file alias="en">locale/sap_en.qm</file>
+        <file alias="en_US">locale/sap_en_US.qm</file>
+        <file alias="eo">locale/sap_eo.qm</file>
+        <file alias="es">locale/sap_es.qm</file>
+        <file alias="es_ES">locale/sap_es_ES.qm</file>
+        <file alias="fi">locale/sap_fi.qm</file>
+        <file alias="fr_FR">locale/sap_fr_FR.qm</file>
+        <file alias="hi_IN">locale/sap_hi_IN.qm</file>
+        <file alias="hr">locale/sap_hr.qm</file>
+        <file alias="hr_HR">locale/sap_hr_HR.qm</file>
+        <file alias="it">locale/sap_it.qm</file>
+        <file alias="ja">locale/sap_ja.qm</file>
+        <file alias="ko_KR">locale/sap_ko_KR.qm</file>
+        <file alias="lt_LT">locale/sap_lt_LT.qm</file>
+        <file alias="nl">locale/sap_nl.qm</file>
+        <file alias="pl">locale/sap_pl.qm</file>
+        <file alias="pt">locale/sap_pt.qm</file>
+        <file alias="pt_BR">locale/sap_pt_BR.qm</file>
+        <file alias="ro_RO">locale/sap_ro_RO.qm</file>
+        <file alias="ru">locale/sap_ru.qm</file>
+        <file alias="sk">locale/sap_sk.qm</file>
+        <file alias="sv">locale/sap_sv.qm</file>
+        <file alias="tr">locale/sap_tr.qm</file>
+        <file alias="uk">locale/sap_uk.qm</file>
+        <file alias="vi">locale/sap_vi.qm</file>
+        <file alias="zh_CN">locale/sap_zh_CN.qm</file>
+        <file alias="zh_TW">locale/sap_zh_TW.qm</file>
+    </qresource>
+</RCC>
