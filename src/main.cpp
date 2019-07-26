@@ -64,6 +64,7 @@ CCriticalSection cs_main;
 
 BlockMap mapBlockIndex;
 map<uint256, uint256> mapProofOfStake;
+map<COutPoint, int> mapStakeSpent;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
 map<unsigned int, unsigned int> mapHashedBlocks;
 CChain chainActive;
@@ -1897,16 +1898,30 @@ int64_t GetBlockValue(int nHeight)
         nSubsidy = 25 * COIN;
     } else if (nHeight <= 100000 && nHeight > 60000) {
         nSubsidy = 50 * COIN;
-    } else if (nHeight <= 150000 && nHeight > 100000) {
+    } else if (nHeight <= 130000 && nHeight > 100000) {
         nSubsidy = 100 * COIN;
-    } else if (nHeight <= 250000 && nHeight > 150000) {
-        nSubsidy = 200 * COIN;
-    } else if (nHeight <= 500000 && nHeight > 250000) {
+    } else if (nHeight <= 150000 && nHeight > 130000) {
+        nSubsidy = 150 * COIN;
+    } else if (nHeight <= 175000 && nHeight > 150000) {
+        nSubsidy = 250 * COIN;
+    } else if (nHeight <= 200000 && nHeight > 175000) {
+        nSubsidy = 400 * COIN;
+    } else if (nHeight <= 250000 && nHeight > 200000) {
         nSubsidy = 500 * COIN;
-    } else if (nHeight <= 1000000 && nHeight > 500000) {
-        nSubsidy = 1000 * COIN;
+    } else if (nHeight <= 300000 && nHeight > 250000) {
+        nSubsidy = 450 * COIN;
+    } else if (nHeight <= 400000 && nHeight > 300000) {
+        nSubsidy = 400 * COIN;
+    } else if (nHeight <= 500000 && nHeight > 400000) {
+        nSubsidy = 350 * COIN;
+    } else if (nHeight <= 650000 && nHeight > 500000) {
+        nSubsidy = 300 * COIN;
+    } else if (nHeight <= 800000 && nHeight > 650000) {
+        nSubsidy = 250 * COIN;
+    } else if (nHeight <= 1000000 && nHeight > 800000) {
+        nSubsidy = 225 * COIN;
     } else {
-        nSubsidy = 500 * COIN;
+        nSubsidy = 200 * COIN;
     }
     return nSubsidy;
 }
@@ -1923,8 +1938,10 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
 
     if (nHeight <= Params().LAST_POW_BLOCK()) {
     	return 0;
-    } else if (nHeight > Params().LAST_POW_BLOCK()){
+    } else if (nHeight > Params().LAST_POW_BLOCK() && nHeight <= 130000){
         ret = blockValue * 9/10;
+    } else if (nHeight > 130000){
+        ret = blockValue * 95/100;
     }
 
     return ret;
@@ -2187,6 +2204,8 @@ bool CheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsVi
         int nSpendHeight = pindexPrev->nHeight + 1;
         CAmount nValueIn = 0;
         CAmount nFees = 0;
+        
+
         for (unsigned int i = 0; i < tx.vin.size(); i++) {
             const COutPoint& prevout = tx.vin[i].prevout;
             const CCoins* coins = inputs.AccessCoins(prevout.hash);
@@ -2386,6 +2405,9 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                 if (coins->vout.size() < out.n + 1)
                     coins->vout.resize(out.n + 1);
                 coins->vout[out.n] = undo.txout;
+
+                // erase the spent input
+                mapStakeSpent.erase(out);
             }
         }
     }
@@ -3004,6 +3026,28 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     if (fTxIndex)
         if (!pblocktree->WriteTxIndex(vPos))
             return state.Abort("Failed to write transaction index");
+
+
+    // add new entries
+    for (const CTransaction tx: block.vtx) {
+        if (tx.IsCoinBase())
+            continue;
+        for (const CTxIn in: tx.vin) {
+            LogPrint("map", "mapStakeSpent: Insert %s | %u\n", in.prevout.ToString(), pindex->nHeight);
+            mapStakeSpent.insert(std::make_pair(in.prevout, pindex->nHeight));
+        }
+    }
+
+    // delete old entries
+    for (auto it = mapStakeSpent.begin(); it != mapStakeSpent.end();) {
+        if (it->second < pindex->nHeight - Params().MaxReorganizationDepth()) {
+            LogPrint("map", "mapStakeSpent: Erase %s | %u\n", it->first.ToString(), it->second);
+            it = mapStakeSpent.erase(it);
+        }
+        else {
+            it++;
+        }
+    }
 
     // add this block to the view's block chain
     view.SetBestBlock(pindex->GetBlockHash());
@@ -4453,6 +4497,20 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
 
         // If the stake is not a zPoS then let's check if the inputs were spent on the main chain
         const CCoinsViewCache coins(pcoinsTip);
+        if (!coins.HaveInputs(block.vtx[1])) {
+            // the inputs are spent at the chain tip so we should look at the recently spent outputs
+
+            for (CTxIn in : block.vtx[1].vin) {
+                auto it = mapStakeSpent.find(in.prevout);
+                if (it == mapStakeSpent.end()) {
+                    return false;
+                }
+                if (it->second <= pindexPrev->nHeight) {
+                    return false;
+                }
+            }
+        }
+
         if(!stakeTxIn.IsZerocoinSpend()) {
             for (const CTxIn& in: stakeTxIn.vin) {
                 const CCoins* coin = coins.AccessCoins(in.prevout.hash);
@@ -4665,8 +4723,11 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
 bool TestBlockValidity(CValidationState& state, const CBlock& block, CBlockIndex* const pindexPrev, bool fCheckPOW, bool fCheckMerkleRoot)
 {
     AssertLockHeld(cs_main);
-    assert(pindexPrev && pindexPrev == chainActive.Tip()); //Fix assertion failure in mining/staking
-
+    assert(pindexPrev);
+    if (pindexPrev != chainActive.Tip()) {
+        LogPrintf("%s : No longer working on chain tip\n", __func__);
+        return false;
+    }
     CCoinsViewCache viewNew(pcoinsTip);
     CBlockIndex indexDummy(block);
     indexDummy.pprev = pindexPrev;
@@ -6566,13 +6627,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 //       it was the one which was commented out
 int ActiveProtocol()
 {
-    // SPORK_14 is used for 70913 (v3.1.0+)
-    if (IsSporkActive(SPORK_14_NEW_PROTOCOL_ENFORCEMENT))
-            return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
+    // SPORK_14 is used for 70914 (v1.0.0+)
+    //if (IsSporkActive(SPORK_14_NEW_PROTOCOL_ENFORCEMENT))
+    //       return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
 
-    // SPORK_15 was used for 70912 (v3.0.5+), commented out now.
-    //if (IsSporkActive(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2))
-    //        return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
+    // SPORK_15 was used for 70916 (v1.1.0+), commented out now.
+    if (IsSporkActive(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2))
+            return MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT;
 
     return MIN_PEER_PROTO_VERSION_BEFORE_ENFORCEMENT;
 }
