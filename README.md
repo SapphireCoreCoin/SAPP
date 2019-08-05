@@ -15,7 +15,7 @@ Sapphire Core integration/staging repository
 
 • Explorer http://explorer.sapphirecore.com
 
-• Website [sapphirecore.com](http://www.sapphirecore.com)
+• Website [sapphirecore.com](https://www.sapphirecore.com)
 
 ### Rewards Breakdown
 <table border=0 cellpadding=0 cellspacing=0 width=701 class=xl6553517252
