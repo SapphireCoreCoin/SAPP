@@ -191,13 +191,13 @@ Sapphire Core integration/staging repository
   <td class=xl6817252 align=right>30</td>
  </tr>
  <tr height=21 style='mso-height-source:userset;height:15.75pt'>
-  <td height=21 class=xl6417252 style='height:15.75pt'>650001-800000</td>
-  <td class=xl6517252>50000</td>
-  <td class=xl6617252>250</td>
+  <td height=21 class=xl6417252 style='height:15.75pt'>500001-550000</td>
+  <td class=xl6517252>150000</td>
+  <td class=xl6617252>800</td>
   <td class=xl6617252>95</td>
   <td class=xl6617252>5</td>
-  <td class=xl6717252 align=right>237.5</td>
-  <td class=xl6817252 align=right>12.5</td>
+  <td class=xl6717252 align=right>760</td>
+  <td class=xl6817252 align=right>40</td>
  </tr>
  <tr height=21 style='mso-height-source:userset;height:15.75pt'>
   <td height=21 class=xl6417252 style='height:15.75pt'>800001-1000000</td>
